@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using IISAPI.Repository;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,33 +13,26 @@ namespace IISAPI.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
+        
         private readonly ILogger<WeatherForecastController> _logger;
         private IWebHostEnvironment webHostEnvironment;
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IWebHostEnvironment webHostEnvironment)
+        private readonly IWeatherForecastRepository weatherForecastRepository;
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IWebHostEnvironment webHostEnvironment, IWeatherForecastRepository weatherForecastRepository)
         {
             _logger = logger;
             this.webHostEnvironment = webHostEnvironment;
+            this.weatherForecastRepository = weatherForecastRepository;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public IEnumerable<WeatherForecast> Get(int start=0, int end=5)
         {
             _logger.LogDebug("Running in env: " + webHostEnvironment.EnvironmentName);
             _logger.LogDebug("Fetching records for weather forecast");
 
 
             var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
+            return weatherForecastRepository.GetForecasts(start, end)
             .ToArray();
         }
     }
